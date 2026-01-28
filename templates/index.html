@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HRMate+ Premium | Secure Human Capital Infrastructure</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --bg: #fcfcfd;
+            --surface: #ffffff;
+            --border: rgba(0, 0, 0, 0.08);
+            --text-main: #0a0a0b;
+            --text-dim: #475569;
+            --accent: #2563eb;
+            --accent-glow: rgba(37, 99, 235, 0.08);
+            --glass: rgba(255, 255, 255, 0.75);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background: var(--bg); color: var(--text-main); overflow-x: hidden; }
+
+        /* --- VIDEO BACKGROUND LAYER --- */
+        .video-wrapper {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100vh;
+            z-index: -2; overflow: hidden;
+        }
+        .video-wrapper video {
+            width: 100%; height: 100%; object-fit: cover;
+            filter: saturate(0.5) brightness(1.1); 
+        }
+        .video-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(to bottom, rgba(252, 252, 253, 0.85), rgba(252, 252, 253, 0.95));
+            z-index: -1;
+        }
+
+        .container { width: 92%; max-width: 1400px; margin: auto; }
+
+        /* --- NAVIGATION --- */
+        .nav-apex {
+            height: 72px; display: flex; align-items: center; background: var(--glass);
+            backdrop-filter: blur(20px); border-bottom: 1px solid var(--border);
+            position: sticky; top: 0; z-index: 1000;
+        }
+
+        /* --- HERO --- */
+        .hero { padding: 120px 0 80px; text-align: center; }
+        .hero h1 { 
+            font-size: clamp(40px, 6vw, 80px); font-weight: 800; letter-spacing: -3px; 
+            line-height: 1.1; margin-bottom: 24px; color: #000;
+        }
+        .hero p { color: var(--text-dim); font-size: 20px; max-width: 750px; margin: 0 auto 48px; font-weight: 400; }
+
+        /* --- PRIVACY BENTO CARD --- */
+        .privacy-card {
+            background: rgba(255, 255, 255, 0.6); border: 1px solid var(--border); 
+            border-radius: 32px; padding: 40px; margin-bottom: 40px; 
+            display: flex; align-items: center; gap: 40px; text-align: left;
+            backdrop-filter: blur(10px);
+        }
+        .privacy-icon-stack {
+            width: 80px; height: 80px; background: var(--accent);
+            border-radius: 24px; display: flex; align-items: center; justify-content: center; color: #fff;
+            box-shadow: 0 10px 20px rgba(37, 99, 235, 0.2);
+        }
+
+        /* --- PORTAL ITEMS --- */
+        .portal-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-bottom: 80px; }
+        .portal-item {
+            background: rgba(255, 255, 255, 0.5); border: 1px solid var(--border); 
+            border-radius: 28px; padding: 48px 32px; backdrop-filter: blur(10px);
+            transition: all 0.4s ease; text-decoration: none; color: inherit; cursor: pointer;
+            display: block;
+        }
+        .portal-item:hover {
+            background: #fff; transform: translateY(-8px); border-color: var(--accent);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.05);
+        }
+        .portal-item i { margin-bottom: 24px; color: var(--accent); }
+
+        /* --- GALLERY --- */
+        .gallery-section { padding: 100px 0; background: rgba(248, 250, 252, 0.8); backdrop-filter: blur(10px); }
+        .gallery-masonry { display: grid; grid-template-columns: repeat(4, 1fr); grid-auto-rows: 250px; gap: 20px; }
+        .gallery-img { border-radius: 24px; overflow: hidden; border: 1px solid var(--border); }
+        .gallery-img img { width: 100%; height: 100%; object-fit: cover; transition: 0.6s; }
+        .gallery-img:hover img { transform: scale(1.05); }
+        .span-2 { grid-column: span 2; }
+        .row-2 { grid-row: span 2; }
+
+        /* --- FOOTER --- */
+        footer { background: #fff; border-top: 1px solid var(--border); padding: 100px 0 40px; }
+        .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 60px; margin-bottom: 80px; }
+        .btn-black { 
+            background: #000; color: #fff; border: none; padding: 14px 32px; 
+            border-radius: 14px; font-weight: 600; cursor: pointer; transition: 0.3s;
+        }
+        .btn-black:hover { opacity: 0.8; }
+
+        /* --- MODAL SYSTEM --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(12px);
+            display: none; align-items: center; justify-content: center; z-index: 2000;
+        }
+
+        .modal-content {
+            background: #fff; width: 90%; max-width: 440px; padding: 48px;
+            border-radius: 36px; position: relative;
+            box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.25);
+            animation: modalPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes modalPop {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .close-modal {
+            position: absolute; top: 24px; right: 24px; background: #f1f5f9; border: none;
+            width: 32px; height: 32px; border-radius: 50%; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; font-size: 20px;
+        }
+
+        .auth-toggle {
+            display: flex; background: #f1f5f9; padding: 6px; border-radius: 16px; margin-bottom: 32px;
+        }
+
+        .auth-toggle button {
+            flex: 1; border: none; padding: 12px; border-radius: 12px; cursor: pointer;
+            font-weight: 700; background: transparent; transition: 0.3s; font-size: 14px;
+        }
+
+        .auth-toggle button.active {
+            background: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.08); color: var(--accent);
+        }
+
+        .auth-form { display: flex; flex-direction: column; gap: 18px; }
+        .auth-form h2 { font-size: 28px; letter-spacing: -1px; margin-bottom: 4px; }
+        .auth-form p { color: var(--text-dim); font-size: 14px; margin-bottom: 8px; }
+        
+        .auth-form input {
+            padding: 16px; border: 1.5px solid var(--border); border-radius: 14px;
+            font-size: 15px; outline: none; transition: 0.3s; background: #fcfcfd;
+        }
+
+        .auth-form input:focus { border-color: var(--accent); background: #fff; }
+
+        .flash-msg {
+            padding: 12px; border-radius: 12px; margin-bottom: 15px; font-size: 13px; font-weight: 600; border: 1px solid;
+        }
+        .flash-danger { color: #b91c1c; background: #fee2e2; border-color: #fecaca; }
+        .flash-success { color: #15803d; background: #dcfce7; border-color: #bbf7d0; }
+    </style>
+</head>
+<body>
+
+   <div class="video-wrapper">
+    <video autoplay muted loop playsinline>
+        <source src="{{ url_for('static', filename='2.mp4') }}" type="video/mp4">
+    </video>
+</div>
+<div class="video-overlay"></div>
+
+
+    <nav class="nav-apex">
+        <div class="container" style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="font-weight: 800; font-size: 24px; letter-spacing: -1px;">HRMATE<span style="color: var(--accent);">+</span></div>
+            <div style="display: flex; gap: 32px; align-items: center; font-size: 14px; font-weight: 600;">
+                <a href="#" style="color: var(--text-main); text-decoration: none;">Solutions</a>
+                <a href="#" style="color: var(--text-dim); text-decoration: none;">Security</a>
+                <button class="btn-black" onclick="openAuthModal('register')">Request Demo</button>
+            </div>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="container">
+            <h1>The Global Operating System <br>for Modern Teams.</h1>
+            <p>Experience enterprise human capital management designed for the highest standards of security, transparency, and global scale.</p>
+
+            <div class="privacy-card">
+                <div class="privacy-icon-stack">
+                    <i data-lucide="shield-check" size="36"></i>
+                </div>
+                <div>
+                    <h2 style="font-size: 24px; margin-bottom: 8px;">Zero-Trust Privacy Protocol</h2>
+                    <p style="color: var(--text-dim); font-size: 16px;">Our architecture is built on the principle of data sovereignty. Every employee record is end-to-end encrypted, ensuring compliance with global standards like GDPR and SOC2 Type II.</p>
+                </div>
+            </div>
+
+            <div class="portal-grid">
+                <div class="portal-item" onclick="openAuthModal('login')">
+                    <i data-lucide="globe" size="40"></i>
+                    <h3>HR Portal</h3>
+                    <p>Global payroll and benefits orchestration with localized tax compliance.</p>
+                </div>
+                
+                <div class="portal-item" onclick="openAdminModal()">
+                    <i data-lucide="briefcase" size="40"></i>
+                    <h3>Admin Hub</h3>
+                    <p>Advanced workforce analytics and organizational lifecycle management.</p>
+                </div>
+
+                <div class="portal-item" onclick="openEmployeeLogin()">
+                    <i data-lucide="user-check" size="40"></i>
+                    <h3>Employee Go</h3>
+                    <p>A secure, intuitive mobile experience for self-service and growth.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div id="authModal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeAllModals()">&times;</button>
+            <div id="hrTabContainer">
+                <div id="hr-flash-container">
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                      {% if messages %}
+                        {% for category, message in messages %}
+                          {% if "HR" in message or "OTP" in message %}
+                            <div class="flash-msg {% if category == 'danger' %}flash-danger{% else %}flash-success{% endif %}">{{ message }}</div>
+                          {% endif %}
+                        {% endfor %}
+                      {% endif %}
+                    {% endwith %}
+                </div>
+                <div class="auth-toggle">
+                    <button id="loginBtn" onclick="toggleAuth('login')">Login</button>
+                    <button id="registerBtn" onclick="toggleAuth('register')">Register</button>
+                </div>
+
+                <form id="loginForm" class="auth-form" method="POST" action="/hr_login">
+                    <div>
+                        <h2>Welcome back</h2>
+                        <p>Access your secure HR dashboard</p>
+                    </div>
+                    <input name="email" type="email" placeholder="Work Email" required>
+                    <input name="password" type="password" placeholder="Password" required>
+                    <button class="btn-black" type="submit">Sign In</button>
+                </form>
+
+                <form id="registerForm" class="auth-form" style="display: none;" method="POST" action="/hr_register">
+                    <div>
+                        <h2>Get Started</h2>
+                        <p>Deploy HRMate+ for your organization</p>
+                    </div>
+                    <input name="name" type="text" placeholder="Full Name" required>
+                    <input name="email" type="email" placeholder="Work Email" required>
+                    <input name="mobile_number" type="tel" placeholder="Mobile Number" required>
+                    <input name="password" type="password" placeholder="Create Password" required>
+                    <button class="btn-black" type="submit">Create Account</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="adminModal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeAllModals()">&times;</button>
+            <div id="admin-flash-container">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                  {% if messages %}
+                    {% for category, message in messages %}
+                      {% if "Admin" in message or "Access Key" in message %}
+                        <div class="flash-msg {% if category == 'danger' %}flash-danger{% else %}flash-success{% endif %}">{{ message }}</div>
+                      {% endif %}
+                    {% endfor %}
+                  {% endif %}
+                {% endwith %}
+            </div>
+            <form id="adminLoginForm" class="auth-form" method="POST" action="/admin_login">
+                <div>
+                    <h2>Admin Infrastructure</h2>
+                    <p>Administrative Clearance Required</p>
+                </div>
+                <input name="email" type="text" placeholder="Admin ID" required>
+                <input name="password" type="password" placeholder="Access Key" required>
+                <button class="btn-black" type="submit" style="background: var(--accent);">Authenticate Admin</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="employeeModal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeAllModals()">&times;</button>
+            <div id="employee-flash-container">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                  {% if messages %}
+                    {% for category, message in messages %}
+                      {% if "Employee" in message or "Login Successful" in message %}
+                        <div class="flash-msg {% if category == 'danger' %}flash-danger{% else %}flash-success{% endif %}">{{ message }}</div>
+                      {% endif %}
+                    {% endfor %}
+                  {% endif %}
+                {% endwith %}
+            </div>
+            <form id="employeeLoginForm" class="auth-form" method="POST" action="/employee_login">
+                <div>
+                    <h2>Employee Login</h2>
+                    <p>Access your portal with Employee ID or Email</p>
+                </div>
+                <input name="emp_id" type="text" placeholder="Employee ID or Work Email" required>
+                <input name="password" type="password" placeholder="Password" required>
+                <button class="btn-black" type="submit" style="background: var(--accent);">Sign In to Portal</button>
+            </form>
+        </div>
+    </div>
+
+    <section class="gallery-section">
+        <div class="container">
+            <div style="margin-bottom: 50px; text-align: center;">
+                <h2 style="font-size: 32px; font-weight: 800;">Designed for Excellence</h2>
+                <p style="color: var(--text-dim);">Supporting collaborative teams across the world’s most iconic offices.</p>
+            </div>
+            
+            <div class="gallery-masonry">
+                <div class="gallery-img span-2 row-2"><img src="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1200&q=80"></div>
+                <div class="gallery-img"><img src="https://images.unsplash.com/photo-1542744173-8e7e53415bb0?auto=format&fit=crop&w=600&q=80"></div>
+                <div class="gallery-img row-2"><img src="https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&w=600&q=80"></div>
+                <div class="gallery-img"><img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=600&q=80"></div>
+                <div class="gallery-img span-2"><img src="https://images.unsplash.com/photo-1431540015161-0bf868a2d407?auto=format&fit=crop&w=1200&q=80"></div>
+                <div class="gallery-img"><img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=600&q=80"></div>
+                <div class="gallery-img"><img src="https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&w=600&q=80"></div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <div style="font-weight: 800; font-size: 24px; color: var(--accent); margin-bottom: 24px;">HRMATE+</div>
+                    <p style="color: var(--text-dim); line-height: 1.8; font-size: 15px;">Privacy-first enterprise infrastructure for the modern workforce.</p>
+                </div>
+                <div class="footer-col">
+                    <h4 style="font-size: 14px; margin-bottom: 24px;">Platform</h4>
+                    <ul style="list-style: none; color: var(--text-dim); font-size: 14px;">
+                        <li style="margin-bottom: 12px;">Global Payroll</li>
+                        <li style="margin-bottom: 12px;">Recruiting</li>
+                        <li style="margin-bottom: 12px;">Performance</li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4 style="font-size: 14px; margin-bottom: 24px;">Security</h4>
+                    <ul style="list-style: none; color: var(--text-dim); font-size: 14px;">
+                        <li style="margin-bottom: 12px;">Encryption</li>
+                        <li style="margin-bottom: 12px;">Compliance</li>
+                        <li style="margin-bottom: 12px;">Data Centers</li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4 style="font-size: 14px; margin-bottom: 24px;">Legal</h4>
+                    <ul style="list-style: none; color: var(--text-dim); font-size: 14px;">
+                        <li style="margin-bottom: 12px;">Privacy Policy</li>
+                        <li style="margin-bottom: 12px;">Terms</li>
+                        <li style="margin-bottom: 12px;">DPA</li>
+                    </ul>
+                </div>
+            </div>
+            <div style="padding-top: 40px; border-top: 1px solid var(--border); font-size: 13px; color: var(--text-dim); display: flex; justify-content: space-between;">
+                <p>&copy; 2026 HRMate+ Global. All rights reserved.</p>
+                <div style="display: flex; gap: 20px;">
+                    <span>SOC2 TYPE II</span>
+                    <span>ISO 27001</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+
+        const authModal = document.getElementById('authModal');
+        const adminModal = document.getElementById('adminModal');
+        const employeeModal = document.getElementById('employeeModal');
+        const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
+        const loginBtn = document.getElementById('loginBtn');
+        const registerBtn = document.getElementById('registerBtn');
+
+        function openAuthModal(mode) {
+            closeAllModals();
+            authModal.style.display = 'flex';
+            toggleAuth(mode);
+        }
+
+        function openAdminModal() {
+            closeAllModals();
+            adminModal.style.display = 'flex';
+        }
+
+        function openEmployeeLogin() {
+            closeAllModals();
+            employeeModal.style.display = 'flex';
+        }
+
+        function closeAllModals() {
+            authModal.style.display = 'none';
+            adminModal.style.display = 'none';
+            employeeModal.style.display = 'none';
+        }
+
+        function toggleAuth(mode) {
+            if (mode === 'login') {
+                loginForm.style.display = 'flex';
+                registerForm.style.display = 'none';
+                loginBtn.classList.add('active');
+                registerBtn.classList.remove('active');
+            } else {
+                loginForm.style.display = 'none';
+                registerForm.style.display = 'flex';
+                registerBtn.classList.add('active');
+                loginBtn.classList.remove('active');
+            }
+        }
+
+        window.onclick = function(event) {
+            if (event.target == authModal || event.target == adminModal || event.target == employeeModal) {
+                closeAllModals();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const hrMessages = document.querySelector('#hr-flash-container .flash-msg');
+            const adminMessages = document.querySelector('#admin-flash-container .flash-msg');
+            const employeeMessages = document.querySelector('#employee-flash-container .flash-msg');
+
+            if (hrMessages) {
+                openAuthModal('login');
+            } else if (adminMessages) {
+                openAdminModal();
+            } else if (employeeMessages) {
+                openEmployeeLogin();
+            }
+        });
+    </script>
+</body>
+</html>

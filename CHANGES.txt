@@ -1,0 +1,11 @@
+from mail id
+need update and delete for all the entities
+beed dropdown for selection like (project creation)
+meeting
+
+
+bugs :
+scheduling meeting on same day and same timing
+
+need meetings scheduling as per their country timing on same time line
+same as project

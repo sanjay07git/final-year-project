@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SaaS Command Center | HRMate+</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg: #f8fafc;
+            --surface: #ffffff;
+            --accent: #2563eb;
+            --border: rgba(0, 0, 0, 0.06);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background: var(--bg); color: #0f172a; overflow: hidden; height: 100vh; }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .sidebar-item {
+            transition: 0.2s;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            color: #64748b;
+        }
+        .sidebar-item:hover, .sidebar-item.active { background: #eff6ff; color: var(--accent); }
+
+        /* SPA VIEW TRANSITIONS */
+        .view-section {
+            transition: all 0.4s ease;
+            position: absolute;
+            width: 100%; height: 100%;
+            top: 0; left: 0; padding: 2.5rem;
+            overflow-y: auto;
+        }
+        .hidden-view { opacity: 0; transform: translateY(15px); pointer-events: none; display: none; }
+
+        /* Table Styling */
+        .custom-table { width: 100%; border-collapse: collapse; }
+        .custom-table th { font-size: 11px; font-weight: 800; text-transform: uppercase; color: #94a3b8; padding: 16px; border-bottom: 1px solid #f1f5f9; }
+        .custom-table td { padding: 16px; font-size: 14px; border-bottom: 1px solid #f1f5f9; }
+
+        .badge-pulse { position: relative; display: flex; align-items: center; gap: 8px; }
+        .pulse-dot { width: 8px; height: 8px; background: #22c55e; border-radius: 50%; }
+        .pulse-dot::after { content: ''; position: absolute; width: 100%; height: 100%; background: inherit; border-radius: inherit; animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); opacity: 0.8; } 100% { transform: scale(3); opacity: 0; } }
+    </style>
+</head>
+<body>
+
+    <div class="flex h-screen">
+        <aside class="w-72 bg-white border-r border-slate-200 flex flex-col p-6 z-50">
+            <div class="font-800 text-2xl mb-12 tracking-tighter text-blue-600">HRMATE<span class="text-slate-900">+</span></div>
+            
+            <nav class="flex-1 space-y-1">
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 px-3">System Control</p>
+                <div onclick="showView('adminMain')" id="nav-main" class="sidebar-item active flex items-center gap-3 p-3 text-sm">
+                    <i data-lucide="layout-grid" size="18"></i> Hub Overview
+                </div>
+                <div onclick="showView('telemetryView')" id="nav-telemetry" class="sidebar-item flex items-center gap-3 p-3 text-sm">
+                    <i data-lucide="activity" size="18"></i> Telemetry Logs
+                </div>
+                <div onclick="showView('analyticsView')" id="nav-analytics" class="sidebar-item flex items-center gap-3 p-3 text-sm">
+                    <i data-lucide="line-chart" size="18"></i> Global Analytics
+                </div>
+            </nav>
+
+            <div class="mt-auto space-y-4">
+                <div class="p-4 bg-slate-50 rounded-2xl">
+                    <p class="text-[10px] font-black uppercase text-slate-400">Admin Clearance</p>
+                    <p class="text-xs font-bold mt-1">Infrastructure Root</p>
+                </div>
+                <a href="/logout" class="flex items-center justify-center gap-2 p-4 bg-red-50 text-red-600 rounded-2xl font-bold text-xs uppercase tracking-widest hover:bg-red-600 hover:text-white transition">
+                    <i data-lucide="log-out" size="14"></i> Terminate Session
+                </a>
+            </div>
+        </aside>
+
+        <div class="flex-1 relative overflow-hidden">
+            
+            <main id="adminMain" class="view-section">
+                <header class="flex justify-between items-end mb-10">
+                    <div>
+                        <h1 class="text-4xl font-800 tracking-tight">Admin Hub</h1>
+                        <p class="text-slate-500 font-medium">Monitoring {{ hrs|length }} HR instances globally.</p>
+                    </div>
+                    <div class="glass-card px-5 py-2 border-green-100 badge-pulse">
+                        <div class="pulse-dot"></div>
+                        <span class="text-[10px] font-black uppercase text-green-600">Server Operational</span>
+                    </div>
+                </header>
+
+                <div class="grid grid-cols-3 gap-6 mb-10">
+                    <div class="glass-card p-6 border-l-4 border-blue-600">
+                        <p class="text-xs font-bold text-slate-400 uppercase">HR Entities</p>
+                        <h2 class="text-3xl font-800 mt-1">{{ hrs|length }}</h2>
+                    </div>
+                    <div class="glass-card p-6 border-l-4 border-indigo-600">
+                        <p class="text-xs font-bold text-slate-400 uppercase">Total Personnel</p>
+                        <h2 class="text-3xl font-800 mt-1" id="totalStaffCount">Calculating...</h2>
+                    </div>
+                    <div class="glass-card p-6 border-l-4 border-amber-600">
+                        <p class="text-xs font-bold text-slate-400 uppercase">Pending Access</p>
+                        <h2 class="text-3xl font-800 mt-1">{{ hrs|selectattr("4", "equalto", "pending")|list|length }}</h2>
+                    </div>
+                </div>
+
+                <section class="glass-card overflow-hidden">
+                    <table class="custom-table text-left">
+                        <thead>
+                            <tr>
+                                <th>HR Identity</th>
+                                <th>Workforce</th>
+                                <th>Status</th>
+                                <th>Security</th>
+                                <th class="text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for hr in hrs %}
+                            <tr class="hover:bg-slate-50/50 transition">
+                                <td>
+                                    <div class="font-bold text-slate-900">{{ hr[1] }}</div>
+                                    <div class="text-[10px] text-slate-400 font-bold uppercase">{{ hr[2] }}</div>
+                                </td>
+                                <td><span class="px-2 py-1 bg-blue-50 text-blue-600 rounded-md text-[10px] font-bold">{{ hr[5] }} Staff</span></td>
+                                <td>
+                                    <span class="badge {% if hr[4] == 'approved' %}bg-green-100 text-green-700{% else %}bg-amber-100 text-amber-700{% endif %}">
+                                        {{ hr[4] }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if hr[6] == 1 %}
+                                    <span class="text-red-500 flex items-center gap-1 text-[10px] font-bold uppercase"><i data-lucide="lock" size="12"></i> Locked</span>
+                                    {% else %}
+                                    <span class="text-slate-400 flex items-center gap-1 text-[10px] font-bold uppercase opacity-60"><i data-lucide="unlock" size="12"></i> Active</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-right">
+                                    <div class="flex justify-end gap-2">
+                                        <button onclick="showWorkforce('{{ hr[0] }}', '{{ hr[1] }}')" class="p-2 hover:bg-blue-600 hover:text-white rounded-lg transition text-slate-400"><i data-lucide="eye" size="16"></i></button>
+                                        {% if hr[4] != 'approved' %}
+                                        <a href="/approve_hr/{{ hr[0] }}" class="p-2 bg-blue-600 text-white rounded-lg text-[10px] font-bold uppercase px-3">Approve</a>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </section>
+            </main>
+
+            <main id="telemetryView" class="view-section hidden-view">
+                <header class="mb-10">
+                    <h1 class="text-4xl font-800 tracking-tight">System Telemetry</h1>
+                    <p class="text-slate-500 font-medium">Real-time infrastructure health and node distribution.</p>
+                </header>
+                
+                <div class="grid grid-cols-2 gap-8">
+                    <div class="glass-card p-8">
+                        <h3 class="text-xs font-black uppercase text-slate-400 tracking-widest mb-6">Staff Density by Dept</h3>
+                        <canvas id="deptChart" height="200"></canvas>
+                    </div>
+                    <div class="glass-card p-8">
+                        <h3 class="text-xs font-black uppercase text-slate-400 tracking-widest mb-6">Account Status Matrix</h3>
+                        <canvas id="hrStatusChart" height="200"></canvas>
+                    </div>
+                </div>
+            </main>
+
+            <main id="analyticsView" class="view-section hidden-view">
+                <header class="mb-10">
+                    <h1 class="text-4xl font-800 tracking-tight">Infrastructure Growth</h1>
+                    <p class="text-slate-500 font-medium">Monthly staff node expansion analytics.</p>
+                </header>
+                <div class="glass-card p-8">
+                    <canvas id="growthChart" height="120"></canvas>
+                </div>
+            </main>
+
+            <main id="workforceView" class="view-section hidden-view">
+                <div class="flex items-center gap-4 mb-8">
+                    <button onclick="showView('adminMain')" class="p-2 bg-white rounded-full text-slate-400 hover:text-blue-600 transition shadow-sm"><i data-lucide="arrow-left"></i></button>
+                    <h1 class="text-3xl font-800 tracking-tight" id="hrNameLabel">Workforce Console</h1>
+                </div>
+                <section class="glass-card overflow-hidden">
+                    <table class="custom-table text-left">
+                        <thead>
+                            <tr><th>Personnel</th><th>Contact</th><th>Velocity</th><th>Sync</th></tr>
+                        </thead>
+                        <tbody id="employeeTableBody">
+                            </tbody>
+                    </table>
+                </section>
+            </main>
+
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        function showView(viewId) {
+            document.querySelectorAll('.view-section').forEach(v => v.classList.add('hidden-view'));
+            document.getElementById(viewId).classList.remove('hidden-view');
+            
+            document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+            if(viewId === 'adminMain') document.getElementById('nav-main').classList.add('active');
+            if(viewId === 'telemetryView') {
+                document.getElementById('nav-telemetry').classList.add('active');
+                loadStats();
+            }
+            if(viewId === 'analyticsView') document.getElementById('nav-analytics').classList.add('active');
+        }
+
+        async function loadStats() {
+            const res = await fetch('/admin_stats_json');
+            const data = await res.json();
+            
+            // Dept Bar Chart
+            new Chart(document.getElementById('deptChart'), {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(data.dept_dist),
+                    datasets: [{ label: 'Staff Nodes', data: Object.values(data.dept_dist), backgroundColor: '#2563eb', borderRadius: 8 }]
+                }
+            });
+
+            // HR Status Doughnut
+            new Chart(document.getElementById('hrStatusChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(data.hr_status),
+                    datasets: [{ data: Object.values(data.hr_status), backgroundColor: ['#10b981', '#f59e0b'] }]
+                },
+                options: { cutout: '80%' }
+            });
+
+            // Growth Line Chart
+            new Chart(document.getElementById('growthChart'), {
+                type: 'line',
+                data: {
+                    labels: data.growth.labels,
+                    datasets: [{ label: 'Global Staff Growth', data: data.growth.data, borderColor: '#2563eb', tension: 0.4, fill: true, backgroundColor: 'rgba(37, 99, 235, 0.05)' }]
+                }
+            });
+        }
+
+        function showWorkforce(hrId, hrName) {
+            document.getElementById('hrNameLabel').innerText = hrName + " Workforce Console";
+            showView('workforceView');
+            const tbody = document.getElementById('employeeTableBody');
+            tbody.innerHTML = '<tr><td colspan="4" class="p-20 text-center"><div class="animate-spin h-8 w-8 border-4 border-blue-600 border-t-transparent rounded-full mx-auto"></div></td></tr>';
+
+            fetch(`/admin_view_hr/${hrId}`)
+                .then(res => res.json())
+                .then(data => {
+                    tbody.innerHTML = '';
+                    data.employees.forEach(emp => {
+                        tbody.innerHTML += `
+                            <tr class="hover:bg-slate-50 transition">
+                                <td><div class="font-bold">${emp.name}</div><div class="text-[10px] text-slate-400 uppercase">${emp.role}</div></td>
+                                <td class="text-slate-500">${emp.email}</td>
+                                <td><span class="px-2 py-1 bg-blue-50 text-blue-600 rounded text-[10px] font-black">${emp.project_status}</span></td>
+                                <td><span class="px-2 py-1 bg-green-50 text-green-600 rounded text-[10px] font-black">${emp.meeting_status}</span></td>
+                            </tr>
+                        `;
+                    });
+                });
+        }
+
+        // Auto-calculate Total Staff Node from table data
+        window.onload = () => {
+            let total = 0;
+            document.querySelectorAll('.bg-blue-50.text-blue-600').forEach(span => {
+                total += parseInt(span.innerText);
+            });
+            document.getElementById('totalStaffCount').innerText = total + " Nodes Active";
+        };
+    </script>
+</body>
+</html>

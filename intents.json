@@ -1,0 +1,69 @@
+{
+  "intents": [
+    {
+      "tag": "Greeting",
+      "patterns": ["Hello", "Hi", "Good morning", "Good evening"],
+      "responses": ["Hello! How can I help you today regarding HR or company policies?", "Hi there! Need help with HR queries or employee support?"]
+    },
+    {
+      "tag": "HRPolicies",
+      "patterns": ["What are the company policies?", "Leave policy?", "HR guidelines?"],
+      "responses": ["You can view all HR policies on the HR portal. Would you like me to summarize key policies for you?"]
+    },
+    {
+      "tag": "LeaveRequest",
+      "patterns": ["I want to apply for leave", "How to request leave?", "Can I take a day off?"],
+      "responses": ["You can submit a leave request through the HR portal. Do you want me to guide you step by step?"]
+    },
+    {
+      "tag": "Payroll",
+      "patterns": ["Salary details?", "Pay slip?", "When is salary credited?"],
+      "responses": ["Payroll details are accessible through the HR portal. Would you like help downloading your latest payslip?"]
+    },
+    {
+      "tag": "WorkFromHome",
+      "patterns": ["Can I work from home?", "WFH policy?", "Remote work rules?"],
+      "responses": ["Company WFH policies are available in the HR handbook. Do you want me to explain the process for approval?"]
+    },
+    {
+      "tag": "TrainingPrograms",
+      "patterns": ["Any training programs?", "Skill development sessions?", "Workshops available?"],
+      "responses": ["Yes! The company conducts regular training programs. I can share the upcoming sessions with you."]
+    },
+    {
+      "tag": "PerformanceReview",
+      "patterns": ["Performance appraisal?", "Review process?", "How is performance evaluated?"],
+      "responses": ["Performance reviews happen twice a year. Would you like me to explain the criteria and process?"]
+    },
+    {
+      "tag": "EmployeeBenefits",
+      "patterns": ["Health insurance?", "Other benefits?", "Perks for employees?"],
+      "responses": ["Employees are entitled to several benefits like health insurance, paid leave, and wellness programs. Need details on a specific one?"]
+    },
+    {
+      "tag": "Complaint",
+      "patterns": ["I have an issue", "I want to report a problem", "Workplace complaint"],
+      "responses": ["You can file a complaint through the HR portal. Do you want me to guide you on how to submit it confidentially?"]
+    },
+    {
+      "tag": "ExitProcess",
+      "patterns": ["Resignation process?", "How to exit?", "Notice period rules?"],
+      "responses": ["The resignation and exit process is outlined in the HR handbook. Do you want me to explain the steps?"]
+    },
+    {
+      "tag": "WorkHours",
+      "patterns": ["Office timings?", "Flexible hours?", "Overtime rules?"],
+      "responses": ["Regular work hours and flexible timings are defined by HR. I can give you a detailed schedule if you want."]
+    },
+    {
+      "tag": "RemoteSupport",
+      "patterns": ["Technical issue?", "Need IT support?", "Can't access system"],
+      "responses": ["For technical support, please contact IT through the helpdesk. Do you want me to generate a support ticket?"]
+    },
+    {
+      "tag": "Goodbye",
+      "patterns": ["Bye", "Goodbye", "See you later"],
+      "responses": ["Take care! Reach out anytime for HR or employee support.", "Talk to you soon!"]
+    }
+  ]
+}

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HRMate+ | Admin Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-900 flex items-center justify-center min-h-screen">
+
+    <div class="max-w-md w-full bg-white rounded-xl shadow-2xl overflow-hidden">
+        <div class="bg-black p-8 text-center">
+            <h1 class="text-white text-3xl font-extrabold tracking-widest">
+                HRMATE<span class="text-blue-600">+</span>
+            </h1>
+            <p class="text-gray-400 text-xs mt-2 tracking-tighter uppercase">Administrative Access Point</p>
+        </div>
+
+        <div class="p-8">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="mb-4 p-3 rounded-lg text-sm font-medium {% if category == 'danger' %}bg-red-100 text-red-700{% else %}bg-green-100 text-green-700{% endif %}">
+                            <i class="fas fa-exclamation-circle mr-2"></i> {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <form action="{{ url_for('admin_login') }}" method="POST" class="space-y-6">
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2 uppercase">Admin ID</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+                            <i class="fas fa-user-shield"></i>
+                        </span>
+                        <input type="text" name="email" required 
+                            class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none transition" 
+                            placeholder="Enter admin username">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2 uppercase">Access Key</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+                            <i class="fas fa-lock"></i>
+                        </span>
+                        <input type="password" name="password" required 
+                            class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none transition" 
+                            placeholder="••••••••">
+                    </div>
+                </div>
+
+                <button type="submit" 
+                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg shadow-lg transform transition active:scale-95">
+                    AUTHENTICATE
+                </button>
+            </form>
+        </div>
+
+        <div class="bg-gray-50 p-4 text-center border-t border-gray-100">
+            <a href="{{ url_for('index') }}" class="text-xs text-gray-500 hover:text-blue-600 transition">
+                <i class="fas fa-arrow-left mr-1"></i> Return to Main Terminal
+            </a>
+        </div>
+    </div>
+
+</body>
+</html>

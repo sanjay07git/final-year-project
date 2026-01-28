@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Access | HRMate+</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --bg: #fcfcfd;
+            --surface: #ffffff;
+            --border: rgba(0, 0, 0, 0.08);
+            --text-main: #0a0a0b;
+            --text-dim: #475569;
+            --accent: #2563eb;
+            --glass: rgba(255, 255, 255, 0.75);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        
+        body { 
+            background: var(--bg); 
+            color: var(--text-main); 
+            height: 100vh; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            overflow: hidden; 
+        }
+
+        /* --- VIDEO BACKGROUND (From Index) --- */
+        .video-wrapper {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100vh;
+            z-index: -2; overflow: hidden;
+        }
+        .video-wrapper video {
+            width: 100%; height: 100%; object-fit: cover;
+            filter: saturate(0.5) brightness(1.1); 
+        }
+        .video-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(to bottom, rgba(252, 252, 253, 0.85), rgba(252, 252, 253, 0.95));
+            z-index: -1;
+        }
+
+        /* --- OTP CARD (Glassmorphism) --- */
+        .otp-container {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 36px;
+            padding: 48px;
+            width: 90%;
+            max-width: 460px;
+            box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.1);
+            animation: modalPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-align: center;
+        }
+
+        @keyframes modalPop {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .brand-logo {
+            font-weight: 800;
+            font-size: 24px;
+            letter-spacing: -1px;
+            margin-bottom: 32px;
+        }
+        .brand-logo span { color: var(--accent); }
+
+        .instruction-text {
+            color: var(--text-dim);
+            font-size: 15px;
+            margin-bottom: 32px;
+            line-height: 1.6;
+        }
+
+        /* --- OTP INPUTS --- */
+        .otp-input-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 32px;
+        }
+
+        .otp-digit {
+            width: 52px;
+            height: 64px;
+            background: #fcfcfd;
+            border: 1.5px solid var(--border);
+            border-radius: 14px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-main);
+            transition: 0.3s;
+        }
+
+        .otp-digit:focus {
+            outline: none;
+            border-color: var(--accent);
+            background: #fff;
+            box-shadow: 0 0 0 4px var(--accent-glow);
+        }
+
+        /* --- BUTTONS --- */
+        .verify-btn {
+            background: #000;
+            color: #fff;
+            border: none;
+            border-radius: 14px;
+            padding: 16px;
+            font-weight: 700;
+            width: 100%;
+            transition: 0.3s;
+            font-size: 15px;
+        }
+
+        .verify-btn:hover {
+            opacity: 0.8;
+            transform: translateY(-2px);
+        }
+
+        .timer-box {
+            margin-top: 32px;
+            font-size: 14px;
+            color: var(--text-dim);
+        }
+
+        #countdown {
+            color: var(--accent);
+            font-weight: 700;
+        }
+
+        .resend-link {
+            color: var(--accent);
+            background: none;
+            border: none;
+            font-weight: 700;
+            text-decoration: none;
+            opacity: 0.4;
+            pointer-events: none;
+            transition: 0.3s;
+        }
+
+        .resend-link.active {
+            opacity: 1;
+            pointer-events: auto;
+            cursor: pointer;
+        }
+
+        .alert-custom {
+            background: #fee2e2;
+            border: 1px solid #fecaca;
+            color: #b91c1c;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 12px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="video-wrapper">
+        <video autoplay muted loop playsinline>
+            <source src="{{ url_for('static', filename='2.mp4') }}" type="video/mp4">
+        </video>
+    </div>
+    <div class="video-overlay"></div>
+
+    <div class="otp-container">
+        <div class="brand-logo">HRMATE<span>+</span></div>
+        
+        <h2 style="font-size: 28px; letter-spacing: -1px; margin-bottom: 8px;">Verify Identity</h2>
+        <p class="instruction-text">
+            We've sent a 6-digit security code to <br>
+            <strong style="color: var(--text-main)">{{ session.get('temp_hr_email') }}</strong>
+        </p>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-custom mb-4" role="alert">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form action="{{ url_for('verify_otp') }}" method="POST" id="otpForm">
+            <div class="otp-input-group">
+                <input type="text" class="otp-digit" maxlength="1" pattern="\d*" inputmode="numeric" required autofocus>
+                <input type="text" class="otp-digit" maxlength="1" pattern="\d*" inputmode="numeric" required>
+                <input type="text" class="otp-digit" maxlength="1" pattern="\d*" inputmode="numeric" required>
+                <input type="text" class="otp-digit" maxlength="1" pattern="\d*" inputmode="numeric" required>
+                <input type="text" class="otp-digit" maxlength="1" pattern="\d*" inputmode="numeric" required>
+                <input type="text" class="otp-digit" maxlength="1" pattern="\d*" inputmode="numeric" required>
+            </div>
+
+            <input type="hidden" name="otp" id="final_otp">
+
+            <button type="submit" class="verify-btn">Authenticate Access</button>
+        </form>
+
+        <div class="timer-box">
+            Code expires in <span id="countdown">01:00</span>
+            <div style="margin-top: 12px;">
+                Didn't receive it? 
+                <form action="{{ url_for('hr_login_post') }}" method="POST" style="display: inline;">
+                    <input type="hidden" name="email" value="{{ session.get('temp_hr_email') }}">
+                    <input type="hidden" name="password" value="RESEND_OTP">
+                    <button type="submit" id="resendBtn" class="resend-link">Resend New Code</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const inputs = document.querySelectorAll('.otp-digit');
+        const finalInput = document.getElementById('final_otp');
+
+        // Input logic
+        inputs.forEach((input, index) => {
+            input.addEventListener('input', (e) => {
+                if (e.inputType === "deleteContentBackward") return;
+                if (input.value && index < inputs.length - 1) {
+                    inputs[index + 1].focus();
+                }
+                combineOTP();
+            });
+
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace' && !input.value && index > 0) {
+                    inputs[index - 1].focus();
+                }
+            });
+        });
+
+        function combineOTP() {
+            let otp = "";
+            inputs.forEach(i => otp += i.value);
+            finalInput.value = otp;
+        }
+
+        // Timer Logic
+        let timeLeft = 60;
+        const countdownElem = document.getElementById('countdown');
+        const resendBtn = document.getElementById('resendBtn');
+
+        const timer = setInterval(() => {
+            timeLeft--;
+            let minutes = Math.floor(timeLeft / 60);
+            let seconds = timeLeft % 60;
+            
+            countdownElem.innerText = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+            if (timeLeft <= 0) {
+                clearInterval(timer);
+                countdownElem.innerText = "EXPIRED";
+                countdownElem.style.color = "#b91c1c";
+                resendBtn.classList.add('active');
+                inputs.forEach(i => i.style.opacity = "0.5");
+            }
+        }, 1000);
+
+        document.getElementById('otpForm').onsubmit = function() {
+            combineOTP();
+            if(finalInput.value.length < 6) {
+                alert("Please enter the full 6-digit code.");
+                return false;
+            }
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add Employee</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        form {
+            background: #ffffff;
+            padding: 25px;
+            width: 380px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        input, button {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            font-size: 14px;
+        }
+
+        input {
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        button {
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            color: white;
+        }
+
+        .submit-btn {
+            background: #007bff;
+        }
+
+        .submit-btn:hover {
+            opacity: 0.9;
+        }
+
+        .back-btn {
+            background: #dc3545;
+            margin-top: 5px;
+        }
+
+        small {
+            color: #666;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+
+<form method="POST" action="/add_employee">
+    <h2>Add Employee</h2>
+
+    <!-- Employee ID -->
+    <input type="text"
+           name="employee_id"
+           placeholder="Employee ID (EMP001)"
+           minlength="6"
+           maxlength="6"
+           pattern="EMP[0-9]{3}"
+           title="Employee ID format should be EMP001"
+           required>
+    <small>Format: EMP001 (manual entry by HR)</small>
+
+    <!-- Name -->
+    <input type="text"
+           name="name"
+           placeholder="Full Name"
+           minlength="3"
+           required>
+
+    <!-- Email -->
+    <input type="email"
+           name="email"
+           placeholder="Email"
+           required>
+
+    <!-- Mobile -->
+    <input type="text"
+           name="mobile_number"
+           placeholder="Mobile Number">
+
+    <!-- Password -->
+    <input type="password"
+           name="password"
+           placeholder="Password"
+           required>
+
+    <!-- Department -->
+    <input type="text"
+           name="department"
+           placeholder="Department"
+           minlength="3"
+           required>
+
+    <!-- Role -->
+    <input type="text"
+           name="role"
+           placeholder="Role"
+           minlength="3"
+           required>
+
+    <!-- Date of Joining -->
+    <input type="date"
+           name="date_of_joining"
+           required>
+
+    <button type="submit" class="submit-btn">Add Employee</button>
+    <button type="button" class="back-btn"
+            onclick="location.href='/hr_dashboard'">Back</button>
+</form>
+
+</body>
+</html>

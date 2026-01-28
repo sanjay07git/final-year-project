@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Create Project</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        form {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            width: 400px;
+            text-align: center;
+        }
+
+        input, textarea, select, button {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            font-size: 14px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        h2 {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<form method="POST" action="/create_project">
+    <h2>Create Project</h2>
+
+    <input type="text" name="name" placeholder="Project Name" required>
+    <textarea name="description" placeholder="Project Description"></textarea>
+    <input type="text" name="progress" placeholder="Progress (optional)">
+    <input type="date" name="start_date" placeholder="Start Date" required>
+    <input type="date" name="end_date" placeholder="End Date" required>
+    <input type="text" name="assigned_employees" placeholder="Assign Employees (IDs comma separated)">
+
+    <button type="submit">Create Project</button>
+    <button type="button" onclick="location.href='/hr_dashboard'">Back</button>
+</form>
+
+</body>
+</html>
