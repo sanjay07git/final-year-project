@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Executive Infrastructure | HRMate</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+    <style>
+        :root { --bg: #f0f7ff; --surface: #ffffff; --border: #e2e8f0; --accent: #3b82f6; --text-main: #1e293b; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background: var(--bg); color: var(--text-main); overflow: hidden; }
+        .glass-card { background: var(--surface); border: 1px solid var(--border); border-radius: 24px; transition: 0.3s; }
+        .sidebar-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 16px; font-size: 14px; font-weight: 600; cursor: pointer; transition: 0.2s; color: #64748b; }
+        .sidebar-item:hover, .sidebar-item.active { background: #eff6ff; color: var(--accent); }
+        .project-stat-card { padding: 20px; border-radius: 20px; background: #f8fafc; border: 1px solid var(--border); }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(240, 247, 255, 0.8); backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; z-index: 4000; }
+        #calendar { background: white; padding: 20px; border-radius: 24px; height: 600px; }
+        .fc-toolbar-title { font-size: 1.2rem !important; font-weight: 800 !important; }
+        .badge-pending { background: #fef3c7; color: #92400e; }
+        .btn-action { transition: 0.3s; transform-origin: center; }
+        .btn-action:hover { transform: scale(1.05); }
+       
+    </style>
+</head>
+<body>
+    <div class="flex h-screen">
+        <aside class="w-80 bg-white border-r border-slate-200 flex flex-col p-8 z-10">
+            <div class="font-800 text-2xl mb-10 tracking-tighter text-blue-600">HRMATE</div>
+            <nav class="flex-1 space-y-2 overflow-y-auto">
+                <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Core Management</div>
+                <div onclick="showView('dashboard')" id="nav-dashboard" class="sidebar-item active"><i data-lucide="layout-dashboard" size="18"></i> Dashboard</div>
+                <div onclick="showView('calendar')" id="nav-calendar" class="sidebar-item"><i data-lucide="calendar" size="18"></i> HRMate Calendar</div>
+                <div onclick="showView('meetings')" id="nav-meetings" class="sidebar-item"><i data-lucide="video" size="18"></i> Strategic Syncs</div>
+                <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-8 mb-4">Operations</div>
+                <div onclick="showView('leaves')" id="nav-leaves" class="sidebar-item"><i data-lucide="calendar-check" size="18"></i> Approval Queue</div>
+                <div onclick="showView('payroll')" id="nav-payroll" class="sidebar-item"><i data-lucide="banknote" size="18"></i> Payroll Console</div>
+                <div onclick="openModal('employeeModal')" class="sidebar-item"><i data-lucide="user-plus" size="18"></i> Add Personnel</div>
+                <div onclick="openModal('projectModal')" class="sidebar-item"><i data-lucide="plus-circle" size="18"></i> Create Project</div>
+                <div onclick="openModal('meetingModal')" class="sidebar-item"><i data-lucide="video" size="18"></i> Schedule Sync</div>
+                <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-8 mb-4">Workstream Explorer</div>
+                {% for project in projects %}
+                <div class="relative group p-4 bg-slate-50 border border-slate-100 rounded-2xl mb-3 hover:border-blue-300 transition">
+                    <div onclick="openProjectDetails('{{ project[0] }}', '{{ project[1] }}', '{{ project[2] }}', '{{ project[6] }}', '{{ project[3] }}', '{{ project[4] }}', '{{ project[5] }}')" class="cursor-pointer">
+                        <div class="text-xs font-bold text-slate-900 group-hover:text-blue-600">{{ project[1] }}</div>
+                        <div class="text-[9px] text-slate-400 font-bold uppercase mt-1">Lead: {{ project[6] or 'Unassigned' }}</div>
+                    </div>
+                    <a href="/delete_project/{{ project[0] }}" onclick="return confirm('Archive and delete this workstream?')" class="absolute top-2 right-2 text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition">
+                        <i data-lucide="trash-2" size="14"></i>
+                    </a>
+                </div>
+                {% endfor %}
+            </nav>
+            <a href="/logout" class="p-4 bg-slate-900 text-white rounded-2xl text-center text-xs font-bold uppercase tracking-widest hover:bg-red-600 transition">Terminate Session</a>
+        </aside>
+
+        <main class="flex-1 overflow-y-auto p-12">
+            <div id="dashboard-view">
+                <header class="mb-10"><h1 class="text-3xl font-800 tracking-tight text-slate-900">Executive Hub</h1></header>
+                <div class="grid grid-cols-4 gap-6 mb-10">
+                    <div class="glass-card p-6 border-l-4 border-blue-500">
+                        <p class="text-[10px] font-black text-slate-400 uppercase">Personnel</p>
+                        <h2 class="text-2xl font-800">{{ employees|length }}</h2>
+                    </div>
+                    <div class="glass-card p-6 border-l-4 border-green-500">
+                        <p class="text-[10px] font-black text-slate-400 uppercase">Projects</p>
+                        <h2 class="text-2xl font-800">{{ projects|length }}</h2>
+                    </div>
+                    <div class="glass-card p-6 border-l-4 border-yellow-500">
+                        <p class="text-[10px] font-black text-slate-400 uppercase">Queue</p>
+                        <h2 class="text-2xl font-800">{{ leaves|length }}</h2>
+                    </div>
+                    <div class="glass-card p-6 border-l-4 border-purple-500">
+                        <p class="text-[10px] font-black text-slate-400 uppercase">Meetings</p>
+                        <h2 class="text-2xl font-800">{{ meetings|length }}</h2>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div class="glass-card p-8"><canvas id="deptChart" height="220"></canvas></div>
+                    <div class="glass-card p-8">
+                        <h3 class="text-slate-400 text-[10px] font-black uppercase mb-6">Personnel Node Directory</h3>
+                        <div class="space-y-3 max-h-[400px] overflow-y-auto">
+                            {% for emp in employees %}
+                            <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100 group transition hover:border-blue-200">
+                                <div class="flex items-center justify-between mb-3">
+                                    <div>
+                                        <p class="text-sm font-bold text-slate-900">{{ emp[1] }}</p>
+                                        <p class="text-[10px] text-slate-400 font-black uppercase">{{ emp[0] }}</p>
+                                    </div>
+                                    <a href="/delete_employee/{{ emp[0] }}" onclick="return confirm('Decommission this personnel node?')" class="p-2 text-slate-300 hover:text-red-500">
+                                        <i data-lucide="trash-2" size="14"></i>
+                                    </a>
+                                </div>
+                                <form action="/update_employee" method="POST" class="grid grid-cols-3 gap-2 border-t border-slate-200 pt-3">
+                                    <input type="hidden" name="id" value="{{ emp[0] }}">
+                                    <input type="text" name="department" value="{{ emp[2] }}" class="p-2 rounded-lg bg-white border border-slate-100 text-[10px] font-bold outline-none" placeholder="Dept">
+                                    <input type="text" name="role" value="{{ emp[3] }}" class="p-2 rounded-lg bg-white border border-slate-100 text-[10px] font-bold outline-none" placeholder="Role">
+                                    <button type="submit" class="p-2 bg-slate-900 text-white rounded-lg text-[9px] font-black uppercase tracking-widest hover:bg-blue-600">Sync</button>
+                                </form>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="leaves-view" class="hidden">
+                <header class="mb-10"><h1 class="text-3xl font-800 tracking-tight text-slate-900">Leave Approval Queue</h1></header>
+                <div class="glass-card overflow-hidden">
+                    <table class="w-full text-left">
+                        <thead class="bg-slate-50 text-[10px] uppercase font-black text-slate-400">
+                            <tr><th class="px-8 py-4">Employee</th><th class="px-8 py-4">Type</th><th class="px-8 py-4">Duration</th><th class="px-8 py-4">Status</th><th class="px-8 py-4 text-right">Actions</th></tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            {% for leave in leaves %}
+                            <tr class="hover:bg-slate-50 transition">
+                                <td class="px-8 py-5 font-bold text-sm">{{ leave[1] }}</td>
+                                <td class="px-8 py-5 text-sm"><span class="px-3 py-1 bg-slate-100 rounded-full text-[10px] font-black uppercase">{{ leave[2] }}</span></td>
+                                <td class="px-8 py-5 text-sm text-slate-500">{{ leave[3] }} → {{ leave[4] }}</td>
+                                <td class="px-8 py-5"><span class="px-3 py-1 badge-pending rounded-full text-[10px] font-black uppercase">{{ leave[5] }}</span></td>
+                                <td class="px-8 py-5 text-right">
+                                    <div class="flex justify-end gap-2">
+                                        <a href="/update_leave/{{ leave[0] }}/Approved" class="btn-action px-4 py-2 bg-green-600 text-white rounded-xl text-[10px] font-black uppercase">Approve</a>
+                                        <a href="/update_leave/{{ leave[0] }}/Rejected" class="btn-action px-4 py-2 bg-red-600 text-white rounded-xl text-[10px] font-black uppercase">Reject</a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="payroll-view" class="hidden">
+                <header class="mb-10"><h1 class="text-3xl font-800 tracking-tight text-slate-900">Payroll Infrastructure</h1></header>
+                <div class="glass-card p-8 mb-8">
+                    <h3 class="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-6">Authorize Monthly Remittance</h3>
+                    <form action="/process_payroll" method="POST" class="grid grid-cols-4 gap-4">
+                        <select name="employee_id" class="p-4 rounded-xl border border-slate-100 bg-slate-50 outline-none text-sm font-bold" required>
+                            <option value="" disabled selected>Select Recipient</option>
+                            {% for emp in employees %}<option value="{{ emp[0] }}">{{ emp[1] }}</option>{% endfor %}
+                        </select>
+                        <input type="number" name="salary" placeholder="Base Salary" class="p-4 rounded-xl border border-slate-100 bg-slate-50 outline-none text-sm" required>
+                        <input type="number" name="bonus" placeholder="Bonus" class="p-4 rounded-xl border border-slate-100 bg-slate-50 outline-none text-sm">
+                        <button type="submit" class="p-4 bg-slate-900 text-white font-black rounded-xl uppercase text-[10px] tracking-widest hover:bg-blue-600">Authorize Payment</button>
+                    </form>
+                </div>
+                <div class="glass-card overflow-hidden">
+                    <table class="w-full text-left">
+                        <thead class="bg-slate-50 text-[10px] uppercase font-black text-slate-400">
+                            <tr><th class="px-8 py-4">Month</th><th class="px-8 py-4">Employee</th><th class="px-8 py-4">Total Amount</th><th class="px-8 py-4">Status</th></tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            {% for entry in payroll %}
+                            <tr class="hover:bg-slate-50 transition">
+                                <td class="px-8 py-5 text-sm font-bold">{{ entry[0] }}</td>
+                                <td class="px-8 py-5 text-sm">{{ entry[1] }}</td>
+                                <td class="px-8 py-5 text-sm font-black text-blue-600">${{ entry[2] + entry[3] }}</td>
+                                <td class="px-8 py-5"><span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-[10px] font-black uppercase">Disbursed</span></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="calendar-view" class="hidden"><div id="calendar" class="glass-card"></div></div>
+
+            <div id="meetings-view" class="hidden">
+                <header class="mb-10"><h1 class="text-3xl font-800 tracking-tight text-slate-900">Strategic Sync Registry</h1></header>
+                <div class="glass-card overflow-hidden">
+                    <table class="w-full text-left">
+                        <thead class="bg-slate-50 text-[10px] uppercase font-black text-slate-400">
+                            <tr><th class="px-8 py-4">Briefing Topic</th><th class="px-8 py-4">Date</th><th class="px-8 py-4">Time</th><th class="px-8 py-4">Status</th><th class="px-8 py-4">Meet Link</th><th class="px-8 py-4 text-right">Actions</th></tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            {% for meeting in meetings %}
+                            <tr class="hover:bg-slate-50 transition">
+                                <td class="px-8 py-5 font-bold text-sm">{{ meeting[1] }}</td>
+                                <td class="px-8 py-5 text-sm">{{ meeting[2] }}</td>
+                                <td class="px-8 py-5 text-sm">
+                                    <span class="font-bold text-blue-600">{{ meeting[3] }}</span>
+                                    <span class="text-[10px] text-slate-400 block uppercase">{{ meeting[4] }}</span>
+                                </td>
+                                <td class="px-8 py-5"><span class="px-3 py-1 bg-blue-100 text-blue-600 rounded-full text-[10px] font-black uppercase">{{ meeting[5] }}</span></td>
+                                <td class="px-8 py-5">
+                                    {% if meeting[7] %}
+                                        <a href="{{ meeting[7] }}" target="_blank"
+                                           style="display:inline-flex;align-items:center;gap:6px;background:#1a73e8;color:#fff;padding:6px 14px;border-radius:8px;font-size:11px;font-weight:800;text-decoration:none;letter-spacing:0.5px;">
+                                           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M15 10l4.553-2.069A1 1 0 0121 8.87v6.26a1 1 0 01-1.447.9L15 14M3 8a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/></svg>
+                                           JOIN MEET
+                                        </a>
+                                    {% else %}
+                                        <span style="font-size:11px;color:#94a3b8;font-weight:600;">No link yet</span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-8 py-5 text-right">
+                                    <div class="flex justify-end gap-3">
+                                        <div class="relative group">
+                                            <button class="text-slate-400 hover:text-blue-600"><i data-lucide="refresh-cw" size="16"></i></button>
+                                            <div class="hidden group-hover:block absolute right-0 bg-white border border-slate-200 rounded-xl shadow-xl z-50 w-32">
+                                                <a href="/update_meeting_status/{{ meeting[0] }}/Completed" class="block p-2 text-[10px] font-black hover:bg-slate-50">MARK COMPLETED</a>
+                                                <a href="/update_meeting_status/{{ meeting[0] }}/Cancelled" class="block p-2 text-[10px] font-black hover:bg-slate-50 text-red-600">CANCEL SYNC</a>
+                                            </div>
+                                        </div>
+                                        <a href="/delete_meeting/{{ meeting[0] }}" onclick="return confirm('Confirm permanent deletion?')" class="text-slate-400 hover:text-red-600"><i data-lucide="trash-2" size="16"></i></a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="project-view" class="hidden">
+                <div class="flex justify-between items-center mb-10">
+                    <div class="flex items-center gap-4">
+                        <button onclick="showView('dashboard')" class="p-2 hover:bg-white rounded-full text-slate-400"><i data-lucide="arrow-left"></i></button>
+                        <h1 id="det-name" class="text-3xl font-800 tracking-tight text-slate-900"></h1>
+                    </div>
+                    <form action="/update_project_progress" method="POST" class="flex gap-2">
+                        <input type="hidden" name="project_id" id="det-id-input">
+                        <input type="number" name="progress" placeholder="New %" class="w-20 p-2 rounded-lg border border-slate-200 text-xs font-bold outline-none">
+                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-[10px] font-black uppercase">Update Velocity</button>
+                    </form>
+                </div>
+                <div class="grid grid-cols-3 gap-8">
+                    <div class="col-span-2 space-y-8">
+                        <div class="glass-card p-8"><h3 class="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-4">Technical Objective</h3><p id="det-desc" class="text-slate-600 leading-relaxed text-sm"></p></div>
+                        <div class="grid grid-cols-2 gap-6">
+                            <div class="project-stat-card"><p class="text-[10px] font-black text-slate-400 uppercase mb-2">Launch Date</p><p id="det-start" class="text-sm font-bold text-slate-900"></p></div>
+                            <div class="project-stat-card"><p class="text-[10px] font-black text-slate-400 uppercase mb-2">Target Completion</p><p id="det-end" class="text-sm font-bold text-slate-900"></p></div>
+                        </div>
+                    </div>
+                    <div class="col-span-1 space-y-8">
+                        <div class="glass-card p-8 bg-blue-600 text-white border-none"><p class="text-[10px] font-black uppercase opacity-60 mb-2">Project Custodian</p><h2 id="det-lead" class="text-xl font-bold"></h2></div>
+                        <div class="glass-card p-8 text-center"><p class="text-[10px] font-black uppercase text-slate-400 mb-4">Velocity Phase</p><div class="inline-flex items-center justify-center w-24 h-24 rounded-full border-4 border-blue-100 relative"><span id="det-progress" class="text-2xl font-black text-blue-600"></span></div></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <div id="employeeModal" class="modal-overlay">
+        <div class="modal-content glass-card p-10 w-[600px] relative max-h-[90vh] overflow-y-auto">
+            <button onclick="closeAllModals()" class="absolute top-6 right-6 text-slate-400"><i data-lucide="x"></i></button>
+            <h2 class="text-2xl font-black mb-6">Register Personnel</h2>
+            <form action="/add_employee" method="POST" class="grid grid-cols-2 gap-4">
+                <input type="text" name="employee_id" placeholder="Employee ID" class="w-full p-4 rounded-xl border border-slate-100 bg-slate-50 outline-none" required>
+                <input type="text" name="name" placeholder="Full Name" class="w-full p-4 rounded-xl border border-slate-100 bg-slate-50 outline-none" required>
+                <input type="email" name="email" placeholder="Work Email" class="w-full p-4 rounded-xl border border-slate-100 bg-slate-50 outline-none col-span-2" required>
+                <input type="text" name="mobile_number" placeholder="Contact" class="w-full p-4 rounded-xl border border-slate-100 bg-slate-50 outline-none" required>
+                <input type="password" name="password" placeholder="Access Password" class="w-full p-4 rounded-xl border border-slate-100 bg-slate-50 outline-none" required>
+                <input type="text" name="department" placeholder="Department" class="w-full p-4 rounded-xl border border-slate-100 bg-slate-50 outline-none" required>
+                <input type="text" name="role" placeholder="Role" class="w-full p-4 rounded-xl border border-slate-100 bg-slate-50 outline-none" required>
+                <input type="date" name="date_of_joining" class="w-full p-4 rounded-xl border border-slate-100 bg-slate-50 outline-none col-span-2" required>
+                <input type="text" name="skill" placeholder="Skill" class="w-full p-4 rounded-xl border border-slate-100 bg-slate-50 outline-none col-span-2" required>
+
+                <button type="submit" class="col-span-2 p-4 bg-blue-600 text-white font-black rounded-xl uppercase text-xs tracking-widest mt-4">Initialize Deployment</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="projectModal" class="modal-overlay">
+        <div class="modal-content glass-card p-10 w-[500px] relative">
+            <button onclick="closeAllModals()" class="absolute top-6 right-6 text-slate-400"><i data-lucide="x"></i></button>
+            <h2 class="text-2xl font-black mb-6">Initialize Workstream</h2>
+            <form action="/create_project" method="POST" class="space-y-4">
+                <input type="text" name="name" placeholder="Project Identity" class="w-full p-4 rounded-xl border border-slate-100 bg-slate-50 outline-none" required>
+                <textarea name="description" placeholder="Project Description" class="w-full p-4 rounded-xl border border-slate-100 bg-slate-50 outline-none h-24" required></textarea>
+                <div class="grid grid-cols-2 gap-4">
+                    <input type="date" name="start_date" class="w-full p-4 rounded-xl border border-slate-100 bg-slate-50 outline-none" required>
+                    <input type="date" name="end_date" class="w-full p-4 rounded-xl border border-slate-100 bg-slate-50 outline-none" required>
+                </div>
+                <input type="text" name="progress" placeholder="Initial Progress %" class="w-full p-4 rounded-xl border border-slate-100 bg-slate-50 outline-none" value="0">
+                <div class="grid grid-cols-2 gap-4">
+
+                  <select name="required_role" 
+                    class="w-full p-4 rounded-xl border border-slate-100 bg-slate-50 outline-none" required>
+                    <option value="">Select Required Role</option>
+                    <option value="Java">Java Developer</option>
+                    <option value="Python">Python Developer</option>
+                    <option value="AI">AI Engineer</option>
+                    <option value="Frontend">Frontend Developer</option>
+                    <option value="Data Scientist">Data Scientist</option>
+                </select>
+
+                <select name="required_skill" 
+                        class="w-full p-4 rounded-xl border border-slate-100 bg-slate-50 outline-none" required>
+
+                        <option value="">Select Required Skill</option>
+
+                        <!-- Java Stack -->
+                        <option value="Java">Java</option>
+                        <option value="Spring Boot">Spring Boot</option>
+                        <option value="Hibernate">Hibernate</option>
+                        <option value="Microservices">Microservices</option>
+
+                        <!-- Python Stack -->
+                        <option value="Python">Python</option>
+                        <option value="Django">Django</option>
+                        <option value="Flask">Flask</option>
+                        <option value="FastAPI">FastAPI</option>
+
+                        <!-- AI / ML Stack -->
+                        <option value="Machine Learning">Machine Learning</option>
+                        <option value="Deep Learning">Deep Learning</option>
+                        <option value="NLP">NLP</option>
+                        <option value="LLM">LLM</option>
+                        <option value="TensorFlow">TensorFlow</option>
+                        <option value="PyTorch">PyTorch</option>
+
+                        <!-- Data Stack -->
+                        <option value="SQL">SQL</option>
+                        <option value="MongoDB">MongoDB</option>
+                        <option value="Data Analysis">Data Analysis</option>
+
+                        <!-- Frontend -->
+                        <option value="React">React</option>
+                        <option value="Angular">Angular</option>
+                        <option value="JavaScript">JavaScript</option>
+
+                        <!-- DevOps -->
+                        <option value="Docker">Docker</option>
+                        <option value="AWS">AWS</option>
+                        <option value="Kubernetes">Kubernetes</option>
+
+                    </select>
+                </div>                
+                <button type="submit" class="w-full p-4 bg-slate-900 text-white font-black rounded-xl uppercase text-xs tracking-widest mt-4">Authorize Project</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="meetingModal" class="modal-overlay">
+        <div class="modal-content glass-card p-10 w-[500px] relative">
+            <button onclick="closeAllModals()" class="absolute top-6 right-6 text-slate-400"><i data-lucide="x"></i></button>
+            <h2 class="text-2xl font-black mb-6">Authorize Strategic Sync</h2>
+            <div class="mb-6 p-4 bg-blue-50 rounded-2xl border border-blue-100 text-center">
+                <p class="text-[10px] font-black text-blue-600 uppercase tracking-widest">Target Region Live Time</p>
+                <p id="modal-live-clock" class="text-lg font-800 text-slate-900 mt-1">Select Timezone</p>
+            </div>
+            <form action="/schedule_meeting" method="POST" class="space-y-4">
+                <input type="text" name="title" placeholder="Meeting Objective" class="w-full p-4 rounded-xl border border-slate-100 bg-slate-50 outline-none text-sm font-semibold" required>
+                <select name="timezone" id="modal-timezone-select" onchange="updateModalClock()" class="w-full p-4 rounded-xl border border-slate-100 bg-slate-50 outline-none text-sm font-bold" required>
+                    <option value="" disabled selected>Select Timezone</option>
+                    {% for tz in timezones %}<option value="{{ tz }}">{{ tz }}</option>{% endfor %}
+                </select>
+                <div class="grid grid-cols-2 gap-4">
+                    <input type="date" name="date" class="w-full p-4 rounded-xl border border-slate-100 bg-slate-50 outline-none text-sm" required>
+                    <input type="time" name="time" class="w-full p-4 rounded-xl border border-slate-100 bg-slate-50 outline-none text-sm" required>
+                </div>
+                <select name="participants" class="w-full p-4 rounded-xl border border-slate-100 bg-slate-50 outline-none text-sm font-bold h-32" multiple required>
+                    {% for emp in employees %}<option value="{{ emp[4] }}">{{ emp[1] }} ({{ emp[4] }})</option>{% endfor %}
+                </select>
+                <select name="status" class="w-full p-4 rounded-xl border border-slate-100 bg-slate-50 outline-none text-sm font-bold">
+                    <option value="Scheduled">Scheduled</option>
+                    <option value="Urgent">Urgent</option>
+                </select>
+                <button type="submit" class="w-full p-4 bg-blue-600 text-white font-black rounded-xl uppercase text-xs tracking-widest mt-4">Broadcast Sync</button>
+            </form>
+        </div>
+    </div>
+
+    
+
+    <script>
+        lucide.createIcons();
+        function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+        function closeAllModals() { document.querySelectorAll('.modal-overlay').forEach(m => m.style.display = 'none'); }
+        function showView(view) {
+            ['dashboard', 'calendar', 'meetings', 'project', 'leaves', 'payroll'].forEach(v => {
+                const el = document.getElementById(v + '-view');
+                if (el) el.classList.toggle('hidden', v !== view);
+            });
+            document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('active'));
+            document.getElementById('nav-' + view)?.classList.add('active');
+            if (view === 'calendar') setTimeout(() => calendar.render(), 100);
+        }
+        function openProjectDetails(id, name, desc, lead, progress, start, end) {
+            document.getElementById('det-id-input').value = id;
+            document.getElementById('det-name').innerText = name;
+            document.getElementById('det-desc').innerText = desc;
+            document.getElementById('det-lead').innerText = lead || 'Unassigned';
+            document.getElementById('det-progress').innerText = (progress || 0) + '%';
+            document.getElementById('det-start').innerText = start || '---';
+            document.getElementById('det-end').innerText = end || '---';
+            showView('project');
+        }
+        const calendar = new FullCalendar.Calendar(document.getElementById('calendar'), { initialView: 'dayGridMonth', events: '/get_calendar_events', eventColor: '#3b82f6' });
+        async function loadStats() {
+            const res = await fetch('/get_stats_json');
+            const data = await res.json();
+            new Chart(document.getElementById('deptChart'), { type: 'doughnut', data: { labels: data.labels, datasets: [{ data: data.values, backgroundColor: ['#3b82f6', '#60a5fa', '#93c5fd', '#bfdbfe'], borderWidth: 4, borderColor: '#ffffff' }] }, options: { cutout: '80%', plugins: { legend: { position: 'bottom' } } } });
+        }
+        loadStats();
+        function updateModalClock() {
+            const tz = document.getElementById('modal-timezone-select').value;
+            if (!tz) return;
+            const timeString = new Date().toLocaleTimeString('en-US', { timeZone: tz, hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+            document.getElementById('modal-live-clock').innerText = timeString + " (" + tz + ")";
+        }
+        setInterval(() => { if (document.getElementById('meetingModal').style.display === 'flex') updateModalClock(); }, 1000);
+        async function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const body = document.getElementById('chatBody');
+            if (!input.value.trim()) return;
+            body.innerHTML += `<div class="p-4 bg-blue-600 text-white rounded-3xl rounded-tr-none self-end ml-auto text-[13px] font-medium max-w-[85%]">${input.value}</div>`;
+            const userMsg = input.value; input.value = '';
+            const res = await fetch('/chat', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ message: userMsg }) });
+            const data = await res.json();
+            body.innerHTML += `<div class="p-4 bg-white border border-gray-100 rounded-3xl rounded-tl-none self-start text-[13px] font-medium max-w-[85%]">${data.response}</div>`;
+            body.scrollTop = body.scrollHeight;
+        }
+    </script>
+</body>
+</html>

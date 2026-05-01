@@ -1,0 +1,257 @@
+{
+  "intents": [
+
+    {
+      "tag": "Greeting",
+      "patterns": ["hello", "hi", "hey", "good morning", "good evening", "what's up", "hello there"],
+      "responses": [
+        "Hello! How can I help you today?",
+        "Hi there! Need help with HR or employee services?"
+      ]
+    },
+
+    {
+      "tag": "Help",
+      "patterns": ["what can you do", "help me", "how can you help", "options", "what services do you provide"],
+      "responses": [
+        "I can help with leave, payroll, meetings, projects, and HR policies.",
+        "Ask me about leave requests, salary, meetings, or company policies."
+      ]
+    },
+
+    {
+      "tag": "HRPolicies",
+      "patterns": ["company policies", "hr policies", "leave policy", "rules", "guidelines", "policy details"],
+      "responses": [
+        "You can view all HR policies on the HR portal.",
+        "HR policies are available in your dashboard under guidelines."
+      ]
+    },
+
+    {
+      "tag": "LeaveRequest",
+      "patterns": ["apply leave", "request leave", "take leave", "leave request", "need leave", "how to apply leave"],
+      "responses": [
+        "You can apply for leave from the employee dashboard.",
+        "Go to dashboard → Apply Leave section to submit your request."
+      ]
+    },
+
+    {
+      "tag": "LeaveStatus",
+      "patterns": ["leave status", "my leave status", "approved leave", "leave update"],
+      "responses": [
+        "You can check your leave status in the dashboard.",
+        "Go to your leave section to view approval status."
+      ]
+    },
+
+    {
+      "tag": "Payroll",
+      "patterns": ["salary", "payroll", "pay slip", "payslip", "bonus", "payment", "salary credited"],
+      "responses": [
+        "Payroll details are available in your dashboard.",
+        "You can download your payslip from the payroll section."
+      ]
+    },
+
+    {
+      "tag": "PayslipDownload",
+      "patterns": ["download payslip", "get payslip", "salary slip download", "where is payslip"],
+      "responses": [
+        "You can download your payslip from the payroll section.",
+        "Go to payroll in your dashboard to access your payslip."
+      ]
+    },
+
+    {
+      "tag": "MeetingHelp",
+      "patterns": ["meeting link", "join meeting", "schedule meeting", "where is meeting", "meeting details"],
+      "responses": [
+        "You can join meetings from your dashboard under the Meetings section.",
+        "Meeting links will be available in your meetings tab."
+      ]
+    },
+
+    {
+      "tag": "MeetingStatus",
+      "patterns": ["upcoming meetings", "do i have a meeting", "meeting schedule", "today meetings", "next meeting"],
+      "responses": [
+        "You can check your upcoming meetings in the dashboard.",
+        "Go to the meetings section to view your schedule."
+      ]
+    },
+
+    {
+      "tag": "ProjectHelp",
+      "patterns": ["my project", "project status", "assigned project", "which project", "project details"],
+      "responses": [
+        "You can view your assigned projects in the dashboard.",
+        "Check the project section for status and updates."
+      ]
+    },
+
+    {
+      "tag": "ProjectDeadline",
+      "patterns": ["project deadline", "when is my deadline", "due date", "project due date"],
+      "responses": [
+        "Project deadlines are shown in your dashboard.",
+        "Check the project section to see due dates."
+      ]
+    },
+
+    {
+      "tag": "TaskHelp",
+      "patterns": ["my tasks", "assigned tasks", "task status", "pending tasks", "task deadline"],
+      "responses": [
+        "You can check your assigned tasks in the dashboard.",
+        "Task details including deadlines are available in your task section."
+      ]
+    },
+
+    {
+      "tag": "TaskUpdate",
+      "patterns": ["update task", "mark task complete", "change task status", "complete task"],
+      "responses": [
+        "You can update task progress from your dashboard.",
+        "Mark tasks as complete in the task section."
+      ]
+    },
+
+    {
+      "tag": "PerformanceStats",
+      "patterns": ["my performance", "performance stats", "task completion rate", "work performance", "productivity"],
+      "responses": [
+        "Your performance details are available in the dashboard.",
+        "Check your task completion and progress metrics in your profile."
+      ]
+    },
+
+    {
+      "tag": "WorkFromHome",
+      "patterns": ["work from home", "wfh", "remote work", "can i work remotely"],
+      "responses": [
+        "WFH policies are available in the HR guidelines.",
+        "You can request WFH approval through HR."
+      ]
+    },
+
+    {
+      "tag": "TrainingPrograms",
+      "patterns": ["training", "workshops", "skill development", "learning programs"],
+      "responses": [
+        "The company offers regular training programs.",
+        "Check HR portal for upcoming training sessions."
+      ]
+    },
+
+    {
+      "tag": "PerformanceReview",
+      "patterns": ["performance review", "appraisal", "evaluation", "review process"],
+      "responses": [
+        "Performance reviews happen twice a year.",
+        "You can check your evaluation details in HR portal."
+      ]
+    },
+
+    {
+      "tag": "EmployeeBenefits",
+      "patterns": ["benefits", "insurance", "perks", "employee benefits"],
+      "responses": [
+        "Employees get benefits like insurance, leave, and bonuses.",
+        "Check HR portal for detailed benefits."
+      ]
+    },
+
+    {
+      "tag": "Complaint",
+      "patterns": ["complaint", "issue", "problem", "report issue", "workplace issue"],
+      "responses": [
+        "You can raise a complaint through the HR portal.",
+        "Submit your issue confidentially via HR system."
+      ]
+    },
+
+    {
+      "tag": "ExitProcess",
+      "patterns": ["resign", "exit process", "notice period", "leave company"],
+      "responses": [
+        "Resignation process is available in HR guidelines.",
+        "Contact HR for exit formalities."
+      ]
+    },
+
+    {
+      "tag": "WorkHours",
+      "patterns": ["work hours", "office timing", "shift timing", "working hours"],
+      "responses": [
+        "Work hours are defined by HR.",
+        "Check your schedule in the dashboard."
+      ]
+    },
+
+    {
+      "tag": "AttendanceHelp",
+      "patterns": ["attendance", "mark attendance", "login issue", "unable to login", "attendance problem"],
+      "responses": [
+        "For attendance or login issues, contact IT support.",
+        "Please raise a support request through the system."
+      ]
+    },
+
+    {
+      "tag": "RemoteSupport",
+      "patterns": ["technical issue", "system problem", "it support", "cannot login"],
+      "responses": [
+        "Please contact IT support through helpdesk.",
+        "Raise a support ticket for technical issues."
+      ]
+    },
+
+    {
+      "tag": "HRContact",
+      "patterns": ["contact hr", "how to reach hr", "hr email", "talk to hr", "hr support"],
+      "responses": [
+        "You can contact HR through the portal or official email.",
+        "Reach out to your HR via dashboard support section."
+      ]
+    },
+
+    {
+      "tag": "NavigationHelp",
+      "patterns": ["where is dashboard", "how to use portal", "how to navigate", "where to find options"],
+      "responses": [
+        "You can access all features from your dashboard.",
+        "Use the navigation menu to explore different sections."
+      ]
+    },
+
+    {
+      "tag": "BotIdentity",
+      "patterns": ["who are you", "what are you", "are you a bot", "what is hrmate assistant"],
+      "responses": [
+        "I am HRMate Assistant, here to help you with HR-related queries.",
+        "I'm your HRMate AI assistant designed to help employees."
+      ]
+    },
+
+    {
+      "tag": "Goodbye",
+      "patterns": ["bye", "goodbye", "see you", "later"],
+      "responses": [
+        "Goodbye! Feel free to reach out anytime.",
+        "See you again!"
+      ]
+    },
+
+    {
+      "tag": "Fallback",
+      "patterns": ["asdfgh", "random text", "nothing", "unknown"],
+      "responses": [
+        "Sorry, I didn’t understand that. Try asking about leave, payroll, meetings, or projects.",
+        "I'm not sure about that. You can ask me about HR services like leave, salary, or meetings."
+      ]
+    }
+
+  ]
+}

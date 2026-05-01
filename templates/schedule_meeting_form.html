@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Schedule Meeting</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: #f4f6f8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        form {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            width: 450px;
+        }
+
+        h2 {
+            margin-top: 0;
+            color: #333;
+            text-align: center;
+        }
+
+        .live-clock-container {
+            background: #e0f2fe;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            border: 1px solid #bae6fd;
+        }
+
+        #live-clock {
+            font-weight: bold;
+            color: #0369a1;
+            font-size: 1.1em;
+        }
+
+        label {
+            display: block;
+            margin-top: 10px;
+            font-weight: bold;
+            font-size: 13px;
+            color: #555;
+        }
+
+        input, select, button {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            font-size: 14px;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+            box-sizing: border-box;
+        }
+
+        button[type="submit"] {
+            background-color: #2563eb;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+
+        button[type="button"] {
+            background-color: #f1f5f9;
+            color: #475569;
+            border: 1px solid #cbd5e1;
+            cursor: pointer;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+
+<form method="POST" action="/schedule_meeting">
+    <h2>Schedule Meeting</h2>
+
+    <div class="live-clock-container">
+        <div style="font-size: 12px; color: #0369a1;">LIVE TIME IN SELECTED REGION:</div>
+        <div id="live-clock">Loading...</div>
+    </div>
+
+    <label>Meeting Title</label>
+    <input type="text" name="title" placeholder="Project Sync / Interview" required>
+
+    <label>Country / Timezone</label>
+    <select name="timezone" id="timezone-select" required>
+        {% for tz in timezones %}
+            <option value="{{ tz }}" {% if tz == 'UTC' %}selected{% endif %}>{{ tz }}</option>
+        {% endfor %}
+    </select>
+
+    <div style="display: flex; gap: 10px;">
+        <div style="flex: 1;">
+            <label>Date</label>
+            <input type="date" name="date" required>
+        </div>
+        <div style="flex: 1;">
+            <label>Time</label>
+            <input type="time" name="time" required>
+        </div>
+    </div>
+
+    <label>Participants (Emails or IDs)</label>
+    <input type="text" name="participants" placeholder="dev@company.com, hr@company.com" required>
+
+    <label>Urgency Status</label>
+    <select name="status">
+        <option value="Standard">Standard</option>
+        <option value="Urgent">Urgent</option>
+        <option value="Optional">Optional</option>
+    </select>
+
+    <button type="submit">Confirm Schedule</button>
+    <button type="button" onclick="location.href='/hr_dashboard'">Cancel</button>
+</form>
+
+<script>
+    function updateClock() {
+        const tz = document.getElementById('timezone-select').value;
+        const now = new Date();
+        const timeString = now.toLocaleTimeString('en-US', {
+            timeZone: tz,
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: true
+        });
+        document.getElementById('live-clock').innerText = timeString + " (" + tz + ")";
+    }
+
+    document.getElementById('timezone-select').addEventListener('change', updateClock);
+    setInterval(updateClock, 1000);
+    updateClock();
+</script>
+
+</body>
+</html>
