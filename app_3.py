@@ -10,8 +10,16 @@ import numpy as np
 import pickle
 import nltk
 
-nltk.download('punkt')
-nltk.download('wordnet')
+import nltk
+import os
+
+nltk_data_path = os.path.join(os.getcwd(), "nltk_data")
+
+if not os.path.exists(nltk_data_path):
+    nltk.download('punkt', download_dir=nltk_data_path)
+    nltk.download('wordnet', download_dir=nltk_data_path)
+
+nltk.data.path.append(nltk_data_path)
 import pytz
 import requests as _req
 
@@ -52,7 +60,13 @@ HRMATE_TAG   = "[HRMate]"
 
 # ─── Legacy NLP chatbot (kept as fallback if Gemini key not set) ──────────────
 lemmatizer = WordNetLemmatizer()
-model      = load_model("chatbot_model.h5")
+model = None
+
+def get_model():
+    global model
+    if model is None:
+        model = load_model("chatbot_model.h5")
+    return model
 intents    = json.loads(open("intents.json", encoding="utf-8").read())
 words      = pickle.load(open("words.pkl", "rb"))
 classes    = pickle.load(open("classes.pkl", "rb"))
@@ -1069,7 +1083,7 @@ def chat():
         return jsonify({"response": "No message received"})
 
     # 🔥 NLP intent prediction
-    ints = predict_class(message, model)
+    ints = predict_class(message, get_model())
 
     if not ints or float(ints[0]['probability']) < 0.3:
         response = "I'm not sure about that. Try asking HR-related questions."
