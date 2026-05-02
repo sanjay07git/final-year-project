@@ -33,16 +33,16 @@ from flask import (Flask, flash, jsonify, redirect, render_template,
 from werkzeug.security import generate_password_hash, check_password_hash
 
 # ── Optional heavy deps (graceful degradation if missing) ─────────────────────
+# TensorFlow/Keras replaced with pure-numpy inference (no binary wheel needed)
+# The .h5 model is loaded via the h5py library which is pure Python + C and
+# installs on every platform without issue.
 try:
-    # tensorflow-cpu >= 2.16 ships keras as a separate installed package
-    from keras.models import load_model              # standalone keras 3 (preferred)
-    KERAS_AVAILABLE = True
+    import h5py
+    H5PY_AVAILABLE = True
 except ImportError:
-    try:
-        from tensorflow.keras.models import load_model  # tf < 2.16 bundled keras
-        KERAS_AVAILABLE = True
-    except ImportError:
-        KERAS_AVAILABLE = False
+    H5PY_AVAILABLE = False
+
+KERAS_AVAILABLE = H5PY_AVAILABLE   # kept for flag compatibility
 
 try:
     from nltk.stem import WordNetLemmatizer
@@ -121,18 +121,86 @@ ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")   # Required — no default in prod
 #  NLP CHATBOT  (lazy-loaded to keep startup fast on Render)
 # ═══════════════════════════════════════════════════════════════════════════════
 
-_nlp_model   = None
+_nlp_model   = None   # dict of {weights, biases, activations} per layer
 _lemmatizer  = WordNetLemmatizer() if NLTK_AVAILABLE else None
 
+
+# ── Pure-numpy helpers ────────────────────────────────────────────────────────
+def _relu(x):       return np.maximum(0, x)
+def _softmax(x):
+    e = np.exp(x - np.max(x))
+    return e / e.sum()
+
+def _sigmoid(x):    return 1 / (1 + np.exp(-np.clip(x, -500, 500)))
+
+_ACTIVATIONS = {"relu": _relu, "softmax": _softmax, "sigmoid": _sigmoid,
+                "linear": lambda x: x}
+
+def _load_h5_weights(path):
+    """Extract Dense layer weights/biases + activation from a Keras .h5 file."""
+    layers = []
+    with h5py.File(path, "r") as f:
+        # Keras stores model config as a JSON attribute
+        try:
+            cfg_raw = f.attrs.get("model_config") or f.attrs.get("keras_model_config")
+            if isinstance(cfg_raw, bytes):
+                cfg_raw = cfg_raw.decode("utf-8")
+            model_cfg = json.loads(cfg_raw)
+        except Exception:
+            model_cfg = None
+
+        # Build activation list from config
+        activations = []
+        if model_cfg:
+            layer_cfgs = model_cfg.get("config", {}).get("layers", [])
+            for lc in layer_cfgs:
+                cls = lc.get("class_name", "")
+                if cls in ("Dense",):
+                    act = lc["config"].get("activation", "linear")
+                    if isinstance(act, dict):
+                        act = act.get("class_name", "linear").lower()
+                    activations.append(act.lower())
+
+        # Walk the weight groups
+        model_weights = f.get("model_weights") or f
+        act_idx = 0
+        for layer_name in model_weights:
+            grp = model_weights[layer_name]
+            # Handle nested groups (Keras saves weights under layer_name/layer_name/)
+            sub = grp.get(layer_name) or grp
+            w_key = next((k for k in sub if "kernel" in k or "weight" in k), None)
+            b_key = next((k for k in sub if "bias"   in k), None)
+            if w_key and b_key:
+                act = activations[act_idx] if act_idx < len(activations) else "linear"
+                layers.append({
+                    "W":   np.array(sub[w_key]),
+                    "b":   np.array(sub[b_key]),
+                    "act": act,
+                })
+                act_idx += 1
+    return layers
+
+
+def _forward(layers, x):
+    """Run a forward pass through extracted Dense layers."""
+    out = x.astype(np.float32)
+    for layer in layers:
+        out = out @ layer["W"] + layer["b"]
+        out = _ACTIVATIONS.get(layer["act"], lambda v: v)(out)
+    return out
+
+
 def _load_nlp_assets():
-    """Load chatbot assets once, cache globally."""
+    """Load chatbot weights once, cache globally."""
     global _nlp_model
     if _nlp_model is not None:
         return _nlp_model
-    if not KERAS_AVAILABLE:
+    if not H5PY_AVAILABLE:
+        print("[NLP] h5py not available — chatbot disabled")
         return None
     try:
-        _nlp_model = load_model("chatbot_model.h5")
+        _nlp_model = _load_h5_weights("chatbot_model.h5")
+        print(f"[NLP] Loaded {len(_nlp_model)} Dense layers from chatbot_model.h5")
     except Exception as e:
         print(f"[NLP] Could not load model: {e}")
     return _nlp_model
@@ -164,11 +232,11 @@ def _bow(sentence):
     return np.array(bag)
 
 def predict_class(sentence):
-    model = _load_nlp_assets()
-    if not model or not NLP_ASSETS_AVAILABLE:
+    layers = _load_nlp_assets()
+    if not layers or not NLP_ASSETS_AVAILABLE:
         return []
     p   = _bow(sentence)
-    res = model.predict(np.array([p]), verbose=0)[0]
+    res = _forward(layers, p)
     results = [[i, r] for i, r in enumerate(res) if r > 0.25]
     results.sort(key=lambda x: x[1], reverse=True)
     return [{"intent": _classes[r[0]], "probability": str(r[1])} for r in results]
