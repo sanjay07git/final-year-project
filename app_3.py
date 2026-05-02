@@ -34,10 +34,15 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 # ── Optional heavy deps (graceful degradation if missing) ─────────────────────
 try:
-    from keras.models import load_model
+    # tensorflow-cpu < 2.16 bundles keras internally
+    from tensorflow.keras.models import load_model  # type: ignore
     KERAS_AVAILABLE = True
 except ImportError:
-    KERAS_AVAILABLE = False
+    try:
+        from keras.models import load_model          # standalone keras >= 3
+        KERAS_AVAILABLE = True
+    except ImportError:
+        KERAS_AVAILABLE = False
 
 try:
     from nltk.stem import WordNetLemmatizer
