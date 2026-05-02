@@ -34,12 +34,12 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 # ── Optional heavy deps (graceful degradation if missing) ─────────────────────
 try:
-    # tensorflow-cpu < 2.16 bundles keras internally
-    from tensorflow.keras.models import load_model  # type: ignore
+    # tensorflow-cpu >= 2.16 ships keras as a separate installed package
+    from keras.models import load_model              # standalone keras 3 (preferred)
     KERAS_AVAILABLE = True
 except ImportError:
     try:
-        from keras.models import load_model          # standalone keras >= 3
+        from tensorflow.keras.models import load_model  # tf < 2.16 bundled keras
         KERAS_AVAILABLE = True
     except ImportError:
         KERAS_AVAILABLE = False
