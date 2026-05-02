@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: hrmate
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --workers 2 --threads 2 --timeout 120 --bind 0.0.0.0:$PORT
+    healthCheckPath: /health
+    envVars:
+      - key: RENDER
+        value: "true"
+      - key: SECRET_KEY
+        generateValue: true          # Render auto-generates a secure random value
+      - key: ADMIN_USERNAME
+        value: admin
+      - key: ADMIN_PASSWORD
+        sync: false                  # Set manually in Render dashboard — never commit
+      - key: EMAIL_USER
+        sync: false
+      - key: EMAIL_PASSWORD
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: GOOGLE_REDIRECT_URI
+        sync: false                  # e.g. https://hrmate.onrender.com/google/callback
+      - key: DB_PATH
+        value: /opt/render/project/src/hr_database.db

@@ -1,4 +1,32 @@
+# Environment
 .env
+*.env
+
+# Google OAuth secret file
+Se.json
+client_secret*.json
+
+# Database
+*.db
+*.db-shm
+*.db-wal
+
+# Python
 __pycache__/
-*.pyc
-se.json
+*.py[cod]
+*.pyo
+.venv/
+venv/
+env/
+
+# ML model artifacts (large — store in cloud storage or Git LFS)
+# chatbot_model.h5
+# words.pkl
+# classes.pkl
+
+# NLTK cache
+nltk_data/
+
+# OS
+.DS_Store
+Thumbs.db
